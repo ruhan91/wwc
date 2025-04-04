@@ -1,303 +1,316 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Checker By Ruhan</title>
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-    <style>
-        /* Apply the blur effect to the body */
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            position: relative;
-            overflow: hidden;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weather Checker By ! Ruhan</title>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #000000;
+      --container: rgba(255, 255, 255, 0.6);
+      --btn-bg: #4CAF50;
+      --btn-text: #fff;
+    }
 
-        /* Particles.js background */
-        #particles-js {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
+    body.dark {
+      --bg: #121212;
+      --text: #f1f1f1;
+      --container: rgba(30, 30, 30, 0.6);
+      --btn-bg: #1f7a3d;
+      --btn-text: #ffffff;
+    }
 
-        /* Apply blur effect to the container */
-        .blur-background {
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            background-color: rgba(255, 255, 255, 0.6);
-        }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      background-color: var(--bg);
+      color: var(--text);
+      transition: background-color 0.3s, color 0.3s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-        .container {
-            text-align: center;
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            width: 400px;
-            animation: slideIn 0.5s ease-out;
-            position: relative;
-            z-index: 1;
-        }
+    #particles-js {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
 
-        @keyframes slideIn {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
+    .wrapper {
+      display: flex;
+      flex-direction: row;
+      width: 90%;
+      max-width: 1200px;
+      height: 90vh;
+      gap: 20px;
+    }
 
-        h1 {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 20px;
-        }
+    .container, #map {
+      flex: 1;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
 
-        input[type="text"] {
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            width: 200px;
-            transition: all 0.3s ease;
-        }
+    .container {
+      backdrop-filter: blur(10px);
+      background-color: var(--container);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
 
-        input[type="text"]:focus {
-            border-color: #4CAF50;
-            outline: none;
-        }
+    input[type="text"], button {
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      width: 100%;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
 
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+    button {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      cursor: pointer;
+    }
 
-        button:hover {
-            background-color: #45a049;
-        }
+    button:hover {
+      opacity: 0.9;
+    }
 
-        .loading {
-            font-size: 18px;
-            color: #4CAF50;
-            animation: fadeInOut 2s ease-in-out infinite;
-        }
+    .result, .forecast {
+      margin-top: 20px;
+    }
 
-        @keyframes fadeInOut {
-            0% { opacity: 0; }
-            50% { opacity: 1; }
-            100% { opacity: 0; }
-        }
+    .weather-icon {
+      width: 50px;
+      height: 50px;
+    }
 
-        .result, .forecast {
-            margin-top: 20px;
-            opacity: 0;
-            animation: fadeInResult 1s ease-in forwards;
-        }
+    .error { color: red; }
 
-        @keyframes fadeInResult {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
+    #map {
+      height: 100%;
+    }
 
-        .error {
-            color: red;
-        }
+    .dark-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 999;
+    }
 
-        .weather-icon {
-            width: 50px;
-            height: 50px;
-        }
+    @media (max-width: 768px) {
+      .wrapper {
+        flex-direction: column;
+        height: auto;
+      }
 
-        .forecast {
-            text-align: left;
-            font-size: 14px;
-        }
-
-        .forecast p {
-            margin: 5px 0;
-        }
-    </style>
+      #map {
+        height: 300px;
+      }
+    }
+  </style>
 </head>
 <body>
 
-    <!-- Particles background -->
-    <div id="particles-js"></div>
+  <div id="particles-js"></div>
 
-    <div class="container blur-background">
-        <h1>Weather Checker By Ruhan</h1>
-        <input type="text" id="city" placeholder="Enter city name" />
-        <button onclick="getWeather()">Check Weather</button>
-        
-        <div class="loading" id="loading" style="display: none;">Loading...</div>
-        <div class="result" id="result"></div>
-        <div class="forecast" id="forecast"></div>
+  <!-- Dark Mode Toggle -->
+  <div class="dark-toggle">
+    <button onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
+  </div>
+
+  <div class="wrapper">
+    <div class="container">
+      <h1>Weather Checker By Ruhan</h1>
+      <input type="text" id="city" placeholder="Enter city name">
+      <button onclick="manualWeatherCheck()">Check Weather</button>
+      <div class="loading" id="loading" style="display:none;">Loading...</div>
+      <div class="result" id="result"></div>
+      <div class="forecast" id="forecast"></div>
     </div>
+    <div id="map"></div>
+  </div>
 
-    <script>
-        // Initialize particles.js
-        particlesJS("particles-js", {
-            particles: {
-                number: {
-                    value: 100,
-                    density: {
-                        enable: true,
-                        value_area: 800
-                    }
-                },
-                color: {
-                    value: "#4CAF50"
-                },
-                shape: {
-                    type: "circle",
-                    stroke: {
-                        width: 0,
-                        color: "#000"
-                    },
-                    polygon: {
-                        nb_sides: 5
-                    }
-                },
-                opacity: {
-                    value: 0.5,
-                    random: true,
-                    anim: {
-                        enable: true,
-                        speed: 1,
-                        opacity_min: 0.1,
-                        sync: false
-                    }
-                },
-                size: {
-                    value: 3,
-                    random: true,
-                    anim: {
-                        enable: true,
-                        speed: 2,
-                        size_min: 0.1,
-                        sync: false
-                    }
-                },
-                line_linked: {
-                    enable: true,
-                    distance: 150,
-                    color: "#4CAF50",
-                    opacity: 0.4,
-                    width: 1
-                },
-                move: {
-                    enable: true,
-                    speed: 3,
-                    direction: "none",
-                    random: false,
-                    straight: false,
-                    out_mode: "out",
-                    bounce: false
-                }
-            },
-            interactivity: {
-                detect_on: "canvas",
-                events: {
-                    onhover: {
-                        enable: true,
-                        mode: "repulse"
-                    },
-                    onclick: {
-                        enable: true,
-                        mode: "push"
-                    }
-                }
-            },
-            retina_detect: true
-        });
-
-        async function getWeather() {
-            const city = document.getElementById("city").value;
-            const apiKey = "bd5e378503939ddaee76f12ad7a97608"; // Replace with your API key
-            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
-
-            if (city === "") {
-                document.getElementById("result").innerHTML = "<p class='error'>Please enter a city name.</p>";
-                return;
-            }
-
-            document.getElementById("loading").style.display = "block";
-            document.getElementById("result").innerHTML = "";
-            document.getElementById("forecast").innerHTML = "";
-
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (data.cod !== 200) {
-                    document.getElementById("result").innerHTML = `<p class='error'>${data.message}</p>`;
-                } else {
-                    const temperature = data.main.temp;
-                    const weather = data.weather[0].description;
-                    const weatherIcon = data.weather[0].icon;
-                    const humidity = data.main.humidity;
-                    const windSpeed = data.wind.speed;
-                    const sunrise = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
-                    const sunset = new Date(data.sys.sunset * 1000).toLocaleTimeString();
-                    const iconUrl = `https://openweathermap.org/img/wn/${weatherIcon}.png`;
-
-                    document.getElementById("result").innerHTML = ` 
-                        <p><strong>Weather in ${city}:</strong></p>
-                        <p>Temperature: ${temperature}°C</p>
-                        <p>Condition: ${weather}</p>
-                        <p><img src="${iconUrl}" class="weather-icon" alt="${weather}"></p>
-                        <p>Humidity: ${humidity}%</p>
-                        <p>Wind Speed: ${windSpeed} m/s</p>
-                        <p>Sunrise: ${sunrise}</p>
-                        <p>Sunset: ${sunset}</p>
-                    `;
-
-                    // Fetching 5-day forecast
-                    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`;
-                    const forecastResponse = await fetch(forecastUrl);
-                    const forecastData = await forecastResponse.json();
-
-                    if (forecastData.cod === "200") {
-                        let forecastHTML = "<strong>5-Day Forecast:</strong><br>";
-                        forecastData.list.slice(0, 5).forEach(item => {
-                            const forecastDate = new Date(item.dt * 1000).toLocaleDateString();
-                            const forecastTemp = item.main.temp;
-                            const forecastWeather = item.weather[0].description;
-                            forecastHTML += `
-                                <p>${forecastDate} - ${forecastTemp}°C, ${forecastWeather}</p>
-                            `;
-                        });
-                        document.getElementById("forecast").innerHTML = forecastHTML;
-                    }
-
-                }
-            } catch (error) {
-                document.getElementById("result").innerHTML = "<p class='error'>An error occurred. Please try again.</p>";
-            } finally {
-                document.getElementById("loading").style.display = "none";
-            }
+  <script>
+    // Particles Background
+    particlesJS("particles-js", {
+      particles: {
+        number: { value: 100, density: { enable: true, value_area: 800 } },
+        color: { value: "#4CAF50" },
+        shape: { type: "circle" },
+        opacity: { value: 0.5, random: true },
+        size: { value: 3, random: true },
+        line_linked: { enable: true, distance: 150, color: "#4CAF50", opacity: 0.4, width: 1 },
+        move: { enable: true, speed: 3 }
+      },
+      interactivity: {
+        detect_on: "canvas",
+        events: {
+          onhover: { enable: true, mode: "repulse" },
+          onclick: { enable: true, mode: "push" }
         }
-    </script>
+      },
+      retina_detect: true
+    });
+
+    const apiKey = "bd5e378503939ddaee76f12ad7a97608";
+    let map, marker;
+
+    function initMap(lat = 0, lon = 0) {
+      if (!map) {
+        map = L.map("map").setView([lat, lon], 10);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "&copy; OpenStreetMap contributors"
+        }).addTo(map);
+      } else {
+        map.setView([lat, lon], 10);
+      }
+
+      if (marker) {
+        marker.setLatLng([lat, lon]);
+      } else {
+        marker = L.marker([lat, lon]).addTo(map);
+      }
+    }
+
+    async function getWeather(city = null, lat = null, lon = null) {
+      const resultEl = document.getElementById("result");
+      const forecastEl = document.getElementById("forecast");
+      const loadingEl = document.getElementById("loading");
+      const cityInput = document.getElementById("city");
+
+      resultEl.innerHTML = "";
+      forecastEl.innerHTML = "";
+      loadingEl.style.display = "block";
+
+      try {
+        let weatherUrl;
+
+        if (lat && lon) {
+          weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+        } else {
+          city = city.trim();
+          if (!city) {
+            resultEl.innerHTML = "<p class='error'>Please enter a city name.</p>";
+            loadingEl.style.display = "none";
+            return;
+          }
+          weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+        }
+
+        const response = await fetch(weatherUrl);
+        const data = await response.json();
+
+        if (data.cod !== 200) {
+          resultEl.innerHTML = `<p class='error'>${data.message}</p>`;
+          return;
+        }
+
+        cityInput.value = data.name;
+
+        const { temp, humidity } = data.main;
+        const { description, icon } = data.weather[0];
+        const { speed } = data.wind;
+        const { lat: resLat, lon: resLon } = data.coord;
+        const sunrise = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
+        const sunset = new Date(data.sys.sunset * 1000).toLocaleTimeString();
+
+        resultEl.innerHTML = `
+          <p><strong>Weather in ${data.name}:</strong></p>
+          <p>Temperature: ${temp}°C</p>
+          <p>Condition: ${description}</p>
+          <p><img src="https://openweathermap.org/img/wn/${icon}.png" class="weather-icon" alt="${description}"></p>
+          <p>Humidity: ${humidity}%</p>
+          <p>Wind Speed: ${speed} m/s</p>
+          <p>Sunrise: ${sunrise}</p>
+          <p>Sunset: ${sunset}</p>
+        `;
+
+        initMap(resLat, resLon);
+        if (marker) {
+          marker.bindPopup(`${data.name}: ${temp}°C, ${description}`).openPopup();
+        }
+
+        const forecastResp = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${data.name}&appid=${apiKey}&units=metric`);
+        const forecastData = await forecastResp.json();
+
+        if (forecastData.cod === "200") {
+          const dailyForecast = {};
+          forecastData.list.forEach(item => {
+            const date = new Date(item.dt * 1000).toLocaleDateString();
+            if (!dailyForecast[date]) dailyForecast[date] = [];
+            dailyForecast[date].push(item);
+          });
+
+          let forecastHTML = "<strong>5-Day Forecast:</strong><br>";
+          Object.keys(dailyForecast).slice(0, 5).forEach(date => {
+            const dayData = dailyForecast[date][0];
+            const avgTemp = dayData.main.temp;
+            const condition = dayData.weather[0].description;
+            forecastHTML += `<p><strong>${date}</strong>: ${avgTemp}°C, ${condition}</p>`;
+          });
+
+          forecastEl.innerHTML = forecastHTML;
+        }
+
+      } catch (err) {
+        resultEl.innerHTML = "<p class='error'>An error occurred. Please try again later.</p>";
+        console.error(err);
+      } finally {
+        loadingEl.style.display = "none";
+      }
+    }
+
+    function manualWeatherCheck() {
+      const city = document.getElementById("city").value;
+      getWeather(city);
+    }
+
+    // Dark mode toggle
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+      localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+    }
+
+    // On load
+    window.onload = () => {
+      // Restore dark mode
+      const darkMode = localStorage.getItem("darkMode");
+      if (darkMode === "true") {
+        document.body.classList.add("dark");
+      }
+
+      // Geolocation
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const { latitude, longitude } = pos.coords;
+            getWeather(null, latitude, longitude);
+          },
+          () => getWeather("New York") // fallback
+        );
+      } else {
+        getWeather("New York"); // fallback
+      }
+    };
+  </script>
 
 </body>
 </html>
